@@ -14,6 +14,10 @@ router.get('/',
     authorize([role.SUPER_ADMIN]),
     asyncErrorHandler(userController.getUsers));
 
+router.get('/me',
+    auth,
+    asyncErrorHandler(userController.currentUser));
+
 router.get('/:id',
     auth,
     authorize([role.SUPER_ADMIN]),

@@ -18,6 +18,16 @@ exports.getUserById = async (req, res) => {
     res.send(new AppSuccess(user, 'user retrive successfully!', 200));
 };
 
+exports.currentUser = async (req, res) => {
+    const user = await User
+        .findById(req.user._id)// from login user, auth middleware
+        .select('-password');
+
+    if (!user) throw new AppError('User not found!', 404);
+
+    res.send(new AppSuccess(user, 'User retrive successfully'));
+};
+
 exports.getUsers = async (req, res) => {
     const users = await User.find().sort('_id');
     if (users.length === 0)

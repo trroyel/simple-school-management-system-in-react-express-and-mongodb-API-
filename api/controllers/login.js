@@ -44,7 +44,8 @@ exports.userLogin = async (req, res) => {
     const token = user.generateAuthToken()
     const resObject = {
         token,
-        userData: {
+        user: {
+	    _id: user._id
             name: userData.name,
             email: user.email,
             image: userData.image
