@@ -22,7 +22,7 @@ exports.getTeacherById = async (req, res) => {
 exports.getTeachers = async (req, res) => {
     const teachers = await Teacher
         .find()
-        .select('name fatherName address qualification mobile')
+        .select('name fatherName qualification mobile image')
         .sort('_id');
     if (teachers.length === 0)
         throw new AppError('no teacher is found!', 404);

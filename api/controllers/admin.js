@@ -1,3 +1,4 @@
+const fs = require('fs');
 const _ = require('lodash');
 const Fawn = require('fawn');
 const bcrypt = require('bcryptjs');
@@ -6,6 +7,8 @@ const model = require('../utility/modelUtil');
 const role = require('../utility/userRoleUtil');
 const { deleteFile } = require('../utility/fileUtility');
 const { User } = require('../models/user');
+const PDFDocument = require('pdfkit');
+const path = require('path');
 const { Admin, validate } = require('../models/admin');
 const { AppSuccess, AppError } = require('../utility/responseUtil');
 
@@ -19,7 +22,7 @@ exports.getAdminById = async (req, res) => {
 
 exports.getAdmins = async (req, res) => {
     const admins = await Admin.find()
-        .select('name fatherName address qualification mobile')
+        .select('name fatherName qualification mobile image')
         .sort('_id');
     if (admins.length === 0)
         throw new AppError('no admin is found!', 404);
@@ -138,4 +141,30 @@ exports.deleteAdminById = async (req, res) => {
     res.send(new AppSuccess(_.pick(admin,
         ['name', 'address', 'designation', 'mobile']),
         'admin is deleted successfully!'));
+};
+
+exports.generatePdfByAdminId = async (req, res) => {
+    const { id } = req.params;
+    const admin = await Admin.findById(id).select('-password');
+    if (!admin) throw new AppError('no admin is found!', 404);
+
+    const documentName = `admin-${admin._id}.pdf`;
+    const documentPath = path.join('data', 'pdfdoc', documentName);
+
+    const pdfDoc = new PDFDocument();
+    pdfDoc.pipe(fs.createWriteStream(documentPath));
+    //pdfDoc.pipe(res);
+
+    pdfDoc.fontSize(26).text('admin Details');
+    pdfDoc.fontSize(18).text('---------------------------------------------------------');
+    pdfDoc.fontSize(18).text(`Name:  ${admin.name}`);
+    pdfDoc.fontSize(18).text(`Address:  ${admin.address}`);
+    pdfDoc.fontSize(18).text(`Designation:  ${admin.designation}`);
+    pdfDoc.fontSize(18).text(`Mobile:  ${admin.mobile}`);
+    pdfDoc.fontSize(18).text(`Image:  ${admin.image}`);
+
+    pdfDoc.end();
+
+    res.status(201).send({ url: `/invoice/${documentName}`, message: 'pdf file is generated!' });
+
 };

@@ -47,8 +47,7 @@ exports.userLogin = async (req, res) => {
         user: {
             _id: user._id,
             name: userData.name,
-            email: user.email,
-            image: userData.image
+            image: userData.image,
         }
     };
     res.header('x-auth-token', token).send(new AppSuccess(resObject, 'log in successful!', 200));

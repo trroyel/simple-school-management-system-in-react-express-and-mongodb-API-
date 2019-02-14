@@ -17,6 +17,11 @@ router.get('/',
     authorize([role.SUPER_ADMIN]),
     asyncErrorHandler(adminController.getAdmins));
 
+router.get('/pdfdoc/:id',
+    auth,
+    asyncErrorHandler(adminController.generatePdfByAdminId)
+);
+
 router.get('/:id',
     auth,
     authorize([role.ADMIN, role.SUPER_ADMIN]),
@@ -24,8 +29,8 @@ router.get('/:id',
     asyncErrorHandler(adminController.getAdminById));
 
 router.post('/',
-    // auth,
-    // authorize([role.SUPER_ADMIN]),
+    auth,
+    authorize([role.SUPER_ADMIN]),
     upload.single('image'),
     asyncErrorHandler(adminController.createAdmin));
 

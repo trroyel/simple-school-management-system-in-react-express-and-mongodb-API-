@@ -19,13 +19,22 @@ exports.getUserById = async (req, res) => {
 };
 
 exports.currentUser = async (req, res) => {
-    const user = await User
-        .findById(req.user._id)// from login user, auth middleware
-        .select('-password');
-
+    const user = await User.findById(req.user._id)// from login user, auth middleware
     if (!user) throw new AppError('User not found!', 404);
 
-    res.send(new AppSuccess(user, 'User retrive successfully'));
+    let selectedModel = selectModel(user.model);
+    let userDetails = await selectedModel
+        .findById(user.detailsId)
+        .select('-password');
+    if (!userDetails) throw new AppError('User details is not found!', 404);
+
+    userDetails = {
+        name: userDetails.name,
+        image: userDetails.image,
+        role: user.role,
+        model: user.model
+    };
+    res.send(new AppSuccess(userDetails, 'User retrive successfully'));
 };
 
 exports.getUsers = async (req, res) => {
@@ -62,11 +71,24 @@ exports.deleteUserById = async (req, res) => {
 
     const existingUser = await User.findById(id);
     if (!existingUser) throw new AppError('no user is found to delete!', 404);
-    console.log(existingUser.model);
 
+    let selectedModel = selectModel(existingUser.model)
+
+    let userData = await selectedModel.findById(existingUser.detailsId)
+    if (!userData) throw new AppError('user details is not found!', 404);
+
+    userData = await selectedModel.findByIdAndRemove(existingUser.detailsId);
+    if (userData) deleteFile(userData.image);
+
+    const deletedUser = await User.findByIdAndRemove(req.params.id);
+    if (!deletedUser) throw new AppError(`user is not deleted!`);
+
+    res.send(new AppSuccess(deletedUser, `user ${deletedUser.email} is deleted}`), 200);
+};
+
+selectModel = (data) => {
     let selectedModel;
-
-    switch (existingUser.model) {
+    switch (data) {
         case model.Student:
             selectedModel = Student//await Student.findById(existingUser.detailsId);
             break;
@@ -80,16 +102,7 @@ exports.deleteUserById = async (req, res) => {
             break;
     };
 
-    let userData = await selectedModel.findById(existingUser.detailsId)
-    if (!userData) throw new AppError('user details is not found!', 404);
-
-    userData = await selectedModel.findByIdAndRemove(existingUser.detailsId);
-    if (userData) deleteFile(userData.image);
-
-    const deletedUser = await User.findByIdAndRemove(req.params.id);
-    if (!deletedUser) throw new AppError(`user is not deleted!`);
-
-    res.send(new AppSuccess(deletedUser, `user ${deletedUser.email} is deleted}`), 200);
+    return selectedModel
 };
 
 

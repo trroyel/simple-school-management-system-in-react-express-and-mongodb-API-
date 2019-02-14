@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -19,6 +20,7 @@ module.exports = app => {
     app.use('/api/teachers/', require('../routes/teachers'));
 
     app.use('/uploads/', express.static('uploads'));
+    app.use('/invoice/', express.static(path.join('data', 'pdfdoc')));
 
     app.use('/*', require('../routes/404'));
     app.use(require('../middleware/errorHandler'));

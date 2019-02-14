@@ -19,7 +19,7 @@ exports.getStudentById = async (req, res) => {
 
 exports.getStudents = async (req, res) => {
     const students = await Student.find()
-        .select('name fatherName address class mobile')
+        .select('name fatherName class mobile image')
         .sort('_id');
     if (students.length === 0)
         throw new AppError('no student is found!', 404);
